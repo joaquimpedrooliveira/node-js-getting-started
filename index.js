@@ -6,9 +6,6 @@ const PORT = process.env.PORT || 5000
 const { Pool } = require('pg');
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
 });
 
 express()
@@ -19,7 +16,9 @@ express()
   .get('/db', async (req, res) => {
     try {
       const client = await pool.connect();
-      const result = await client.query('SELECT * FROM test_table');
+      await client.query('CREATE TABLE IF NOT EXISTS ticks (tick timestamp)');
+      await client.query('INSERT INTO ticks VALUES (now())');
+      const result = await client.query('SELECT tick FROM ticks');
       const results = { 'results': (result) ? result.rows : null};
       res.render('pages/db', results );
       client.release();
